@@ -1,0 +1,32 @@
+# 默认挂机方案,结构见 DESIGN.md 第 7.2 节
+name: "默认挂机点"
+
+location:
+  map: "目标地图"
+  x: 123
+  y: 456
+  tolerance: 10
+
+navigation:
+  enabled: true
+  timeout_seconds: 180
+  retry_count: 3
+
+combat:
+  enabled: true
+  auto_start: true
+  start_retry_count: 3
+
+revive:
+  enabled: true
+  max_local_revive: 5
+  local_revive_wait_seconds: 3
+  safe_revive_wait_seconds: 5
+
+return_home:
+  enabled: true
+  wait_after_return_seconds: 5
+
+recovery:
+  enabled: true
+  max_recovery_count: 3

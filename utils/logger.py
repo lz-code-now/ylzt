@@ -25,13 +25,15 @@ DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 ROOT_LOGGER_NAME = "ylzt"
 
 
-def setup_logging(level: int = logging.INFO, file_enabled: bool = True) -> None:
+def setup_logging(
+    level: int | str = logging.INFO, file_enabled: bool = True
+) -> None:
     """初始化应用日志配置。
 
     可重复调用:每次调用会重置已有 handler,不会产生重复日志。
 
     Args:
-        level: 日志级别,默认 INFO。
+        level: 日志级别(如 logging.INFO 或 "INFO"),默认 INFO。
         file_enabled: 是否写入日志文件,默认 True。
     """
     root = logging.getLogger(ROOT_LOGGER_NAME)

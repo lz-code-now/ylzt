@@ -1,2 +1,2 @@
-# W0 阶段暂无运行时依赖。
-# 后续阶段将按 DESIGN.md 开发顺序逐步添加(如 PyYAML、PySide6、PyAutoGUI、MSS、OpenCV 等)。
+# 运行时依赖(按阶段逐步添加)
+PyYAML>=6.0

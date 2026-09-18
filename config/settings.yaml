@@ -1,0 +1,19 @@
+# 应用设置,结构见 DESIGN.md 第 7.1 节
+app:
+  language: zh-CN
+  startup_delay_seconds: 5
+  emergency_stop_key: F10
+  pause_key: F8
+  resume_key: F9
+
+game:
+  window_title_contains: "御龙在天"
+
+runtime:
+  default_state_timeout_seconds: 120
+  max_retries: 3
+  loop_enabled: true
+
+logging:
+  level: INFO
+  file_enabled: true

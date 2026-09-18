@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "御龙挂机助手:纯规则、配置驱动、状态机的 Windows 游戏挂机脚本"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "PyYAML>=6.0",
+]
 
 [project.optional-dependencies]
 dev = [
