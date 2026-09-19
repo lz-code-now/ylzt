@@ -105,6 +105,12 @@ python3 -m venv .venv
 
 # 运行测试
 .venv/bin/pytest
+
+# macOS/Linux 打包(产物仅本平台可用;PyInstaller 不支持交叉编译)
+.venv/bin/python scripts/build.py
+
+# Windows 打包:项目拷到 Windows 机器后双击(自动建环境/装依赖/测试/打包)
+scripts\build_windows.bat
 ```
 
 ## 项目结构
