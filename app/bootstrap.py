@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import yaml
@@ -17,7 +18,28 @@ from models.profile import Profile
 from models.settings import AppSettings
 from utils.validation import ConfigValidationError
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+def _project_root() -> Path:
+    """定位项目根目录(资源查找基准)。
+
+    - 源码运行:app/bootstrap.py 的上两级
+    - PyInstaller onedir:可执行文件所在目录(资源与 exe 同级分发,
+      便于用户直接编辑 config/ 与替换 templates/);
+      PyInstaller 6 的 sys._MEIPASS 指向 _internal/,不适合外置资源
+    - PyInstaller onefile:sys._MEIPASS(解包临时目录)
+    """
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        if (exe_dir / "config").is_dir():
+            return exe_dir
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            return Path(meipass)
+        return exe_dir
+    return Path(__file__).resolve().parent.parent
+
+
+PROJECT_ROOT = _project_root()
 CONFIG_DIR = PROJECT_ROOT / "config"
 SETTINGS_FILE = CONFIG_DIR / "settings.yaml"
 PROFILES_DIR = CONFIG_DIR / "profiles"

@@ -40,6 +40,13 @@ logger = get_logger("runner")
 DEFAULT_TICK_SECONDS = 0.5
 
 
+def _default_templates_dir():
+    """默认模板目录:源码运行或打包运行均定位到 <根>/game/templates。"""
+    from app.bootstrap import PROJECT_ROOT
+
+    return PROJECT_ROOT / "game" / "templates"
+
+
 class RunnerError(RuntimeError):
     """Runner 组装或运行失败。"""
 
@@ -78,7 +85,7 @@ class RuntimeRunner:
         import time
 
         self.sleep = sleep or time.sleep
-        self.templates_dir = Path(templates_dir or Path("game/templates"))
+        self.templates_dir = Path(templates_dir or _default_templates_dir())
         self.debug_dir = debug_dir
         self.machine: StateMachine | None = None
         self.adapter: GameAdapter | None = None

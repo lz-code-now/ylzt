@@ -94,15 +94,13 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run_gui(settings, args) -> int:
     """启动 GUI:扫描全部挂机方案供下拉选择。"""
-    from pathlib import Path
-
+    from app.bootstrap import PROFILES_DIR
     from app.gui import run_gui
     from models.profile import Profile
 
     profiles: dict[str, Profile] = {}
-    profiles_dir = Path("config/profiles")
-    if profiles_dir.is_dir():
-        for yaml_file in sorted(profiles_dir.glob("*.yaml")):
+    if PROFILES_DIR.is_dir():
+        for yaml_file in sorted(PROFILES_DIR.glob("*.yaml")):
             try:
                 profiles[yaml_file.stem] = load_profile(yaml_file.stem)
             except ConfigValidationError as exc:

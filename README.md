@@ -6,7 +6,7 @@
 
 ## 当前阶段
 
-**W8:异常恢复(已完成)**
+**W9:Portable 发布(打包脚本已完成,Windows 真机验证待做)**
 
 已包含:
 
@@ -67,11 +67,16 @@
   - `GameAdapter.capture_screenshot()` 恢复现场截图能力(Windows 适配器已实现)
   - GUI 暂停/恢复按钮启用;F8 暂停 / F9 恢复热键接入 runner
   - 配置新增:`runtime.stuck_check_interval_seconds / stuck_min_distance / max_consecutive_failures / max_recovery_screenshot / debug_dir`
+- W9:Portable 发布(DESIGN 21-W9)
+  - `ylzt.spec`:PyInstaller onedir 配置(Windows 绑定隐藏导入;保留控制台;排除无关大模块)
+  - `scripts/build.py`:一键打包脚本——环境检查 → 全量测试 → 清理 → 构建 → 复制外置资源(config/profiles/templates)→ 写部署说明 → 产物冒烟
+  - 资源策略:config/ 与 game/templates/ **外置**于产物目录(用户可编辑配置、可实测替换模板),`app/bootstrap.py` 兼容源码/onedir/onefile 三种运行形态
+  - macOS 验证:产物完整跑通 mock 演示闭环;159MB(含 OpenCV/numpy)
+  - Windows 真机部署:整个 `dist/ylzt/` 复制过去,装 Tesseract + 中文包后按 `使用说明.txt` 配置 `game.ocr.engine=tesseract`,管理员运行 `ylzt.exe --real`
 
-尚未实现(按 DESIGN.md 开发顺序):
+尚未实现:
 
-- W9 Portable 发布(PyInstaller onedir + 收集 DLL/OCR/templates)
-- 真机验证(Windows):W5/W6 的 regions/templates/actions 标定与真实闭环
+- Windows 真机验证:regions/templates/actions 标定、`--real` 真实闭环、打包产物真机运行
 
 ## 环境要求
 
