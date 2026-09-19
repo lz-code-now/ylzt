@@ -8,11 +8,62 @@ app:
 
 game:
   window_title_contains: "御龙在天"
+  # 识别区域(ROI),结构见 DESIGN.md 9.2 节
+  # 注意:以下坐标为占位示例,实际坐标必须通过测试工具在真实游戏中确定
+  regions:
+    map_name:
+      x: 0
+      y: 0
+      width: 300
+      height: 100
+    position:
+      x: 0
+      y: 0
+      width: 300
+      height: 150
+    death_dialog:
+      x: 500
+      y: 300
+      width: 500
+      height: 300
+    combat_button:
+      x: 1000
+      y: 600
+      width: 300
+      height: 200
+  # 动作绑定(W5):优先使用游戏自身快捷键;坐标为窗口内相对坐标
+  # 注意:以下均为占位示例,实际快捷键与坐标必须通过测试工具在真实游戏中确定
+  actions:
+    auto_combat_key: null      # 自动战斗快捷键;为 null 时若配置了点击坐标则点击
+    auto_combat_click: null    # 自动战斗按钮坐标 [x, y](窗口内)
+    stop_combat_key: null      # 停止战斗快捷键(如再按一次切换键)
+    navigate_key: null         # 游戏内寻路快捷键
+    map_shortcut: null         # 打开大地图快捷键
+    local_revive_click: null   # 死亡对话框"原地复活"按钮 [x, y](窗口内)
+    safe_revive_click: null    # 死亡对话框"安全复活"按钮 [x, y](窗口内)
+    return_home_key: null      # 回城快捷键
+    return_home_click: null    # 回城按钮 [x, y](窗口内)
+    minimap_scale: 0.0         # 小地图→世界坐标换算比例(0=未标定)
+    minimap_origin: [0, 0]     # 小地图左上角(窗口内)
+    post_action_delay_seconds: 0.5
+  # OCR 引擎配置(W6):mock=可脚本化 Mock(开发/测试);tesseract=真实引擎
+  ocr:
+    engine: mock
+    # tesseract_cmd: "C:/Program Files/Tesseract-OCR/tesseract.exe"  # Windows 示例;None 用 PATH
+    lang: chi_sim+eng
+    psm: 7
+    min_confidence: 60
 
 runtime:
   default_state_timeout_seconds: 120
   max_retries: 3
   loop_enabled: true
+  # W8 异常恢复
+  stuck_check_interval_seconds: 30   # 卡住检测间隔(NAVIGATE/COMBAT)
+  stuck_min_distance: 5              # 间隔内位移小于该值判定卡住
+  max_consecutive_failures: 5        # 识别连续失败上限,达到后自动安全停止
+  max_recovery_screenshot: 20        # 恢复截图数量上限(防磁盘膨胀)
+  debug_dir: debug                   # 截图输出目录
 
 logging:
   level: INFO

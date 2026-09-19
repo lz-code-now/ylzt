@@ -15,6 +15,9 @@ dist/
 logs/*
 !logs/.gitkeep
 
+# 恢复现场截图(W8 debug_dir)
+debug/
+
 # 测试 / 覆盖率
 .pytest_cache/
 .coverage

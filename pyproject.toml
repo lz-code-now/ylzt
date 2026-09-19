@@ -6,11 +6,21 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "PyYAML>=6.0",
+    "opencv-python>=4.8",
+    "pytesseract>=0.3.10",
+    "Pillow>=10.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+]
+# 仅 Windows 运行时需要(W5 真实 GameAdapter);macOS 开发环境无需安装
+windows = [
+    "pywin32>=306; sys_platform == 'win32'",
+    "mss>=9.0",
+    "pyautogui>=0.9.54",
+    "keyboard>=0.13.5",
 ]
 
 [tool.pytest.ini_options]

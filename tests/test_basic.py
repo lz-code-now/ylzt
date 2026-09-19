@@ -13,13 +13,15 @@ def test_app_constants() -> None:
 
 
 def test_main_outputs_version(capsys) -> None:
-    """main() 正常退出并输出版本信息。"""
+    """main() mock 模式正常退出并输出版本信息(W6 闭环入口)。"""
     from main import main
 
-    assert main() == 0
+    # mock 演示闭环(tick 上限内跑完:到达→战斗→死亡×6→复活→回城→再挂机)
+    assert main(["--profile", "default"]) == 0
     output = capsys.readouterr().out
     assert APP_NAME in output
     assert APP_VERSION in output
+    assert "结束状态" in output
 
 
 def test_setup_logging_configures_root_logger() -> None:

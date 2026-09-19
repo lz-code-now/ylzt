@@ -1,2 +1,12 @@
 # 运行时依赖(按阶段逐步添加)
 PyYAML>=6.0
+opencv-python>=4.8
+pytesseract>=0.3.10
+Pillow>=10.0
+# 另需系统安装 Tesseract 可执行文件(Windows 安装后配置 game.ocr.tesseract_cmd)
+
+# Windows 运行时依赖(W5 真实 GameAdapter,仅 Windows 上安装)
+# pywin32>=306 ; sys_platform == "win32"
+# mss>=9.0
+# pyautogui>=0.9.54
+# keyboard>=0.13.5
