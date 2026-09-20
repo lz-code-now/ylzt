@@ -29,6 +29,12 @@ BUILD_DIR = PROJECT_ROOT / "build"
 APP_DIST = DIST_DIR / "ylzt"
 EXE_NAME = "ylzt.exe" if sys.platform == "win32" else "ylzt"
 
+# Windows 控制台可能是 cp1252 等无法编码中文的代码页:
+# 打印含中文的进度信息时替换不可编码字符,而不是抛 UnicodeEncodeError 中断打包
+for _stream in (sys.stdout, sys.stderr):
+    if _stream is not None and hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(errors="replace")
+
 # 随产物分发的外置资源(用户可编辑/替换)
 COPY_RESOURCES = [
     ("config/settings.yaml", "config/settings.yaml"),

@@ -135,6 +135,11 @@ def _stage_mock_scenario(runner: RuntimeRunner, max_local_revive: int) -> None:
 
 
 if __name__ == "__main__":
+    # Windows 控制台非 UTF-8 代码页时,中文输出降级为 ? 而不是崩溃
+    for _stream in (sys.stdout, sys.stderr):
+        if _stream is not None and hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(errors="replace")
+
     _exit_code = 0
     try:
         _exit_code = main()
