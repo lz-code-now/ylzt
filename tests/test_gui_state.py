@@ -160,9 +160,23 @@ class TestTkinterAvailability:
         assert "GuiWindow" not in source_names
 
 
+def _gui_available() -> bool:
+    """仅在本机有显示环境时跑窗口冒烟(CI 无显示器跳过)。"""
+    import os
+    import sys
+
+    if os.environ.get("CI"):
+        return False
+    if sys.platform == "darwin":
+        return True  # macOS 本机总有 WindowServer
+    if sys.platform == "win32":
+        return True  # Windows 桌面环境
+    return bool(os.environ.get("DISPLAY"))
+
+
 @pytest.mark.skipif(
-    __import__("sys").platform not in {"darwin", "win32"},
-    reason="仅在有显示环境的平台执行窗口冒烟",
+    not _gui_available(),
+    reason="无显示环境(CI),跳过窗口冒烟",
 )
 class TestWindowSmoke:
     def test_window_builds_and_polls(self):
