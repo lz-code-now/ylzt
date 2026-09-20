@@ -85,19 +85,38 @@ def build() -> int:
 
 
 def copy_resources() -> None:
-    """复制外置资源到产物目录(与可执行文件同级)。"""
+    """复制外置资源到产物目录(与可执行文件同级)。失败立即报错退出。"""
     for src_rel, dest_rel in COPY_RESOURCES:
         src = PROJECT_ROOT / src_rel
         dest = APP_DIST / dest_rel
-        if src.is_dir():
-            if dest.exists():
-                shutil.rmtree(dest)
-            shutil.copytree(src, dest)
-            info(f"资源目录 {src_rel} -> {dest}")
-        else:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dest)
-            info(f"资源文件 {src_rel} -> {dest}")
+        try:
+            if src.is_dir():
+                if dest.exists():
+                    shutil.rmtree(dest)
+                shutil.copytree(src, dest)
+            else:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dest)
+        except OSError as exc:
+            fail(f"复制资源失败 {src_rel} -> {dest_rel}: {exc}")
+            raise SystemExit(1) from exc
+        info(f"资源 {src_rel} -> {dest}")
+
+
+def verify_dist() -> int:
+    """产物完整性自检:exe + 全部资源必须就位。"""
+    problems = []
+    if not (APP_DIST / EXE_NAME).exists():
+        problems.append(f"缺少 {EXE_NAME}")
+    for src_rel, dest_rel in COPY_RESOURCES:
+        if not (APP_DIST / dest_rel).exists():
+            problems.append(f"缺少 {dest_rel}")
+    if problems:
+        for problem in problems:
+            fail(problem)
+        return 1
+    info("产物完整性检查通过")
+    return 0
 
 
 def write_readme() -> None:
@@ -155,10 +174,10 @@ def main() -> int:
 
     clean()
     build_ok = build() == 0
-    # 资源复制独立于 PyInstaller 结果:即使构建失败也保证产物结构完整,
-    # 便于区分"构建失败"与"资源缺失"两类问题
     copy_resources()
     write_readme()
+    if verify_dist() != 0:
+        return 1
     if not build_ok:
         fail("PyInstaller 构建失败(详见上方日志)")
         return 1

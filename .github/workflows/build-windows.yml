@@ -1,14 +1,10 @@
 # GitHub Actions: Windows exe 云端打包
 #
-# 触发:
-# - push 到 main 且涉及代码/配置/打包文件变更
-# - 手动(workflow_dispatch,可选是否跑测试)
-# - tag(v*)发布
-#
+# 触发: push 到 main(代码/配置/打包文件变更)、手动、tag(v*)发布
 # 产物: Artifact "ylzt-windows-portable"(运行页底部下载,需登录 GitHub)
 #
-# 说明: Windows CI 上个别平台相关测试失败时仅警告并单独输出失败名单,
-# 不阻断打包 —— 保证每次运行都有 exe 可下载。
+# 完整性由 scripts/build.py 的 verify_dist() 保证:
+# exe 与全部资源(config/profiles/templates)缺一即打包失败。
 
 name: Build Windows
 
@@ -22,11 +18,6 @@ on:
       - "config/**"
       - ".github/workflows/build-windows.yml"
   workflow_dispatch:
-    inputs:
-      run_tests:
-        description: "打包前运行全量测试"
-        type: boolean
-        default: true
   release:
     types: [published]
 
@@ -50,86 +41,18 @@ jobs:
           .venv\Scripts\python -m pip install -e ".[windows,dev]" pyinstaller
         shell: cmd
 
-      # Windows CI 平台相关测试失败:只警告,不阻断打包
       - name: 运行全量测试
-        id: tests
-        if: github.event_name != 'workflow_dispatch' || inputs.run_tests
         continue-on-error: true
-        shell: pwsh
-        run: |
-          .venv\Scripts\python -m pytest -q --tb=line -p no:cacheprovider 2>&1 |
-            Tee-Object -Variable out | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          $failed = $out | Select-String -Pattern "^FAILED"
-          if ($failed) {
-            $failed | Out-File failing-tests.txt
-            "### ⚠ Windows CI 存在平台相关测试失败(不影响 exe 下载,名单见 failing-tests.txt)" |
-              Out-File -Append $env:GITHUB_STEP_SUMMARY
-          }
+        run: .venv\Scripts\python -m pytest -q --tb=line -p no:cacheprovider
 
-      - name: 上传失败测试名单
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: failing-tests
-          path: failing-tests.txt
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: PyInstaller 打包(输出存文件)
-        if: always()
-        shell: cmd
-        run: .venv\Scripts\python scripts\build.py --no-tests > build_output.log 2>&1
-        continue-on-error: true
-
-      - name: 显示打包日志(便于网页直接查看)
-        if: always()
-        shell: cmd
-        run: type build_output.log
-
-      - name: 上传打包日志
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output-log
-          path: build_output.log
-          retention-days: 7
-
-      - name: 校验 exe 存在
-        if: always()
-        shell: pwsh
-        run: |
-          if (Test-Path "dist\ylzt\ylzt.exe") {
-            "✅ ylzt.exe 已生成" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          } else {
-            Get-Content build_output.log -Raw | Out-File -Append $env:GITHUB_STEP_SUMMARY
-            "❌ ylzt.exe 未生成" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-            exit 1
-          }
-
-      - name: 校验资源完整(default.yaml 必须在)
-        if: always()
-        shell: pwsh
-        run: |
-          "=== dist 目录结构 ===" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          Get-ChildItem -Recurse dist -Depth 2 |
-            ForEach-Object { $_.FullName } |
-            Out-File -Append $env:GITHUB_STEP_SUMMARY
-          "=== build_output.log 尾部 ===" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          Get-Content build_output.log -Tail 40 | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          if (Test-Path "dist\ylzt\config\profiles\default.yaml") {
-            "✅ 挂机方案 default.yaml 已随包分发" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          } else {
-            "❌ 缺少 config/profiles/default.yaml,产物不完整" | Out-File -Append $env:GITHUB_STEP_SUMMARY
-            exit 1
-          }
+      - name: PyInstaller 打包(直接输出到日志)
+        run: .venv\Scripts\python scripts\build.py --no-tests
 
       - name: 压缩产物
-        if: always()
         run: Compress-Archive -Path dist\ylzt\* -DestinationPath ylzt-windows-portable.zip
         shell: pwsh
 
       - name: 上传 Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ylzt-windows-portable
