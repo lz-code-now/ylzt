@@ -48,7 +48,8 @@ jobs:
         shell: cmd
 
       - name: 运行全量测试
-        run: .venv\Scripts\python -m pytest -q
+        run: .venv\Scripts\python -m pytest -v --tb=long -p no:cacheprovider
+        shell: cmd
 
       - name: PyInstaller 打包
         run: .venv\Scripts\python scripts\build.py --no-tests
