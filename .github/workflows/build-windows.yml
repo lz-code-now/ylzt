@@ -59,8 +59,11 @@ jobs:
 
       - name: PyInstaller 打包
         if: always()
-        run: .venv\Scripts\python scripts\build.py --no-tests
-        shell: cmd
+        shell: pwsh
+        run: |
+          .venv\Scripts\python scripts\build.py --no-tests 2>&1 |
+            Tee-Object -Variable out | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: 压缩产物
         if: always()
