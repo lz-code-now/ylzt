@@ -135,4 +135,28 @@ def _stage_mock_scenario(runner: RuntimeRunner, max_local_revive: int) -> None:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except SystemExit:
+        raise
+    except BaseException:
+        # 闪退保护:崩溃写入 crash.log(可执行文件旁)并停住控制台以便查看
+        import traceback
+        from datetime import datetime
+
+        try:
+            from app.bootstrap import PROJECT_ROOT
+
+            crash_file = PROJECT_ROOT / "crash.log"
+            content = traceback.format_exc()
+            crash_file.write_text(
+                f"[{datetime.now().isoformat()}] {content}", encoding="utf-8"
+            )
+            print(f"\n程序崩溃,详情已写入: {crash_file}", file=sys.stderr)
+        except Exception:
+            traceback.print_exc()
+        try:
+            input("\n按回车键退出...")
+        except EOFError:
+            pass
+        raise
