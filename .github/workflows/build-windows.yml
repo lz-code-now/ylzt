@@ -110,6 +110,12 @@ jobs:
         if: always()
         shell: pwsh
         run: |
+          "=== dist 目录结构 ===" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem -Recurse dist -Depth 2 |
+            ForEach-Object { $_.FullName } |
+            Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "=== build_output.log 尾部 ===" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          Get-Content build_output.log -Tail 40 | Out-File -Append $env:GITHUB_STEP_SUMMARY
           if (Test-Path "dist\ylzt\config\profiles\default.yaml") {
             "✅ 挂机方案 default.yaml 已随包分发" | Out-File -Append $env:GITHUB_STEP_SUMMARY
           } else {
