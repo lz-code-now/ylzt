@@ -17,7 +17,7 @@ def test_main_outputs_version(capsys) -> None:
     from main import main
 
     # mock 演示闭环(tick 上限内跑完:到达→战斗→死亡×6→复活→回城→再挂机)
-    assert main(["--profile", "default"]) == 0
+    assert main(["--demo", "--profile", "default"]) == 0
     output = capsys.readouterr().out
     assert APP_NAME in output
     assert APP_VERSION in output

@@ -76,6 +76,10 @@ class GuiWindow:
             width=24,
         )
         self.profile_box.grid(row=0, column=0, padx=2)
+        self.demo_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(
+            top, text="演示模式(无需游戏)", variable=self.demo_var
+        ).grid(row=0, column=1, padx=(8, 2))
 
         # -- 状态面板 --
         info = ttk.LabelFrame(root, text="运行状态", padding=8)
@@ -132,7 +136,7 @@ class GuiWindow:
         self.runner = RuntimeRunner(
             settings=self.settings,
             profile=profile,
-            mock=True,  # GUI 演示模式;真机 W8 后由配置决定
+            mock=self.demo_var.get(),  # 演示模式=mock;取消勾选则走真实适配器
         )
         self.worker = threading.Thread(target=self._run_worker, name="script-worker", daemon=True)
         self.start_btn.config(state="disabled")

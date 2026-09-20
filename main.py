@@ -36,12 +36,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--gui",
         action="store_true",
-        help="启动图形界面(tkinter);默认命令行演示模式",
+        help="启动图形界面(tkinter);无参数双击运行时默认打开 GUI",
+    )
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="命令行演示:mock 模式完整跑一遍死亡复活回城剧本后退出",
     )
     parser.add_argument(
         "--real",
         action="store_true",
-        help="使用真实适配器(需 Windows);默认 mock 演示模式",
+        help="真实游戏模式(需 Windows + 管理员权限 + 标定后的配置)",
     )
     parser.add_argument("--profile", default="default", help="挂机方案名称")
     args = parser.parse_args(argv)
@@ -64,13 +69,14 @@ def main(argv: list[str] | None = None) -> int:
         file_enabled=settings.logging.file_enabled,
     )
 
-    if args.gui:
+    # 默认(无参数/双击)打开 GUI 窗口:不会自动退出,避免"闪退"观感
+    if args.gui or not (args.demo or args.real):
         return _run_gui(settings, args)
 
     print(
         f"挂机方案: {profile.name} | 地图: {profile.location.map} | "
         f"坐标: ({profile.location.x}, {profile.location.y}) | "
-        f"模式: {'real' if args.real else 'mock'}"
+        f"模式: {'real' if args.real else 'demo(mock)'}"
     )
 
     try:
@@ -81,9 +87,11 @@ def main(argv: list[str] | None = None) -> int:
         )
         if not args.real:
             _stage_mock_scenario(runner, max_local_revive=profile.max_local_revive)
-        # mock 演示:闭环跑完回城→再挂机后达到 tick 上限自然结束
-        # real 模式:不限 tick,由 F10/Ctrl+C 紧急停止
+        # demo:闭环跑完回城→再挂机后达到 tick 上限自然结束
+        # real:不限 tick,由 F10/Ctrl+C 紧急停止
         end_state = runner.run(max_ticks=None if args.real else 200)
+        if not args.real and sys.stdin is not None and sys.stdin.isatty():
+            input("\n演示结束,按回车键关闭...")
     except RunnerError as exc:
         logger.error("Runner 组装失败: %s", exc)
         print(f"启动失败: {exc}", file=sys.stderr)
