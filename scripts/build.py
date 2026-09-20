@@ -154,11 +154,14 @@ def main() -> int:
         return 1
 
     clean()
-    if build() != 0:
-        fail("PyInstaller 构建失败")
-        return 1
+    build_ok = build() == 0
+    # 资源复制独立于 PyInstaller 结果:即使构建失败也保证产物结构完整,
+    # 便于区分"构建失败"与"资源缺失"两类问题
     copy_resources()
     write_readme()
+    if not build_ok:
+        fail("PyInstaller 构建失败(详见上方日志)")
+        return 1
 
     if not args.no_smoke and smoke_test() != 0:
         return 1

@@ -81,6 +81,11 @@ jobs:
         run: .venv\Scripts\python scripts\build.py --no-tests > build_output.log 2>&1
         continue-on-error: true
 
+      - name: 显示打包日志(便于网页直接查看)
+        if: always()
+        shell: cmd
+        run: type build_output.log
+
       - name: 上传打包日志
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,10 +98,10 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          Get-Content build_output.log -Raw | Out-File -Append $env:GITHUB_STEP_SUMMARY
           if (Test-Path "dist\ylzt\ylzt.exe") {
             "✅ ylzt.exe 已生成" | Out-File -Append $env:GITHUB_STEP_SUMMARY
           } else {
+            Get-Content build_output.log -Raw | Out-File -Append $env:GITHUB_STEP_SUMMARY
             "❌ ylzt.exe 未生成" | Out-File -Append $env:GITHUB_STEP_SUMMARY
             exit 1
           }
