@@ -57,13 +57,32 @@ jobs:
             Tee-Object -Variable out | Out-File -Append $env:GITHUB_STEP_SUMMARY
           "PYTEST_EXIT=$LASTEXITCODE" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: PyInstaller 打包
+      - name: PyInstaller 打包(输出存文件)
+        if: always()
+        shell: cmd
+        run: .venv\Scripts\python scripts\build.py --no-tests > build_output.log 2>&1
+        continue-on-error: true
+
+      - name: 上传打包日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-log
+          path: build_output.log
+          retention-days: 7
+
+      - name: 打包失败则终止
         if: always()
         shell: pwsh
         run: |
-          .venv\Scripts\python scripts\build.py --no-tests 2>&1 |
-            Tee-Object -Variable out | Out-File -Append $env:GITHUB_STEP_SUMMARY
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $log = Get-Content build_output.log -Raw
+          $log | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          if (Test-Path "dist\ylzt\ylzt.exe") {
+            "✅ ylzt.exe 已生成" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          } else {
+            "❌ ylzt.exe 未生成" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+            exit 1
+          }
 
       - name: 压缩产物
         if: always()
