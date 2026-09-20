@@ -101,6 +101,17 @@ jobs:
             exit 1
           }
 
+      - name: 校验资源完整(default.yaml 必须在)
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path "dist\ylzt\config\profiles\default.yaml") {
+            "✅ 挂机方案 default.yaml 已随包分发" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          } else {
+            "❌ 缺少 config/profiles/default.yaml,产物不完整" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+            exit 1
+          }
+
       - name: 压缩产物
         if: always()
         run: Compress-Archive -Path dist\ylzt\* -DestinationPath ylzt-windows-portable.zip

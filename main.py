@@ -48,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
 
     setup_logging()
     logger.info("Script started")
-    logger.info("%s v%s (W7: GUI)", APP_NAME, APP_VERSION)
+    logger.info("%s v%s (W9: Portable)", APP_NAME, APP_VERSION)
     print(f"{APP_NAME} v{APP_VERSION}")
 
     try:
@@ -135,28 +135,33 @@ def _stage_mock_scenario(runner: RuntimeRunner, max_local_revive: int) -> None:
 
 
 if __name__ == "__main__":
+    _exit_code = 0
     try:
-        raise SystemExit(main())
-    except SystemExit:
-        raise
+        _exit_code = main()
+    except SystemExit as exc:
+        _exit_code = exc.code if isinstance(exc.code, int) else 1
     except BaseException:
-        # 闪退保护:崩溃写入 crash.log(可执行文件旁)并停住控制台以便查看
+        # 崩溃保护:写 crash.log(可执行文件旁)并停住控制台
         import traceback
         from datetime import datetime
 
         try:
             from app.bootstrap import PROJECT_ROOT
 
-            crash_file = PROJECT_ROOT / "crash.log"
             content = traceback.format_exc()
-            crash_file.write_text(
+            (PROJECT_ROOT / "crash.log").write_text(
                 f"[{datetime.now().isoformat()}] {content}", encoding="utf-8"
             )
-            print(f"\n程序崩溃,详情已写入: {crash_file}", file=sys.stderr)
+            print(f"\n程序崩溃,详情已写入: {PROJECT_ROOT / 'crash.log'}", file=sys.stderr)
         except Exception:
             traceback.print_exc()
+        _exit_code = 1
+
+    # 双击运行且失败时停住控制台,避免"闪退"看不到错误(管道环境不停)
+    if _exit_code not in (0, None):
         try:
-            input("\n按回车键退出...")
-        except EOFError:
+            if sys.stdin is not None and sys.stdin.isatty():
+                input("\n程序异常退出(见上方提示 / logs 目录),按回车键关闭...")
+        except (EOFError, OSError):
             pass
-        raise
+    raise SystemExit(_exit_code or 0)
