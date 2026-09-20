@@ -47,19 +47,28 @@ jobs:
           .venv\Scripts\python -m pip install -e ".[windows,dev]" pyinstaller
         shell: cmd
 
+      # 测试失败不阻断打包(先出 exe),结果写入 Step Summary 公开可读
       - name: 运行全量测试
-        run: .venv\Scripts\python -m pytest -v --tb=long -p no:cacheprovider
-        shell: cmd
+        id: tests
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          .venv\Scripts\python -m pytest -q --tb=short -p no:cacheprovider 2>&1 |
+            Tee-Object -Variable out | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          "PYTEST_EXIT=$LASTEXITCODE" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: PyInstaller 打包
+        if: always()
         run: .venv\Scripts\python scripts\build.py --no-tests
         shell: cmd
 
       - name: 压缩产物
+        if: always()
         run: Compress-Archive -Path dist\ylzt\* -DestinationPath ylzt-windows-portable.zip
         shell: pwsh
 
       - name: 上传 Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ylzt-windows-portable
@@ -71,3 +80,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ylzt-windows-portable.zip
+
+      - name: 汇总(测试失败则任务标红)
+        if: always()
+        shell: pwsh
+        run: |
+          if ("${{ steps.tests.outcome }}" -ne "success") {
+            "### ⚠ 存在测试失败(不影响本页 Artifact 下载)" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+            exit 1
+          }
