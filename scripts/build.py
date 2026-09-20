@@ -101,7 +101,7 @@ def copy_resources() -> None:
 
 
 def write_readme() -> None:
-    """产物目录附部署说明。"""
+    """产物目录附部署说明(ASCII 文件名,避免 Windows 编码问题)。"""
     text = """御龙挂机助手 - Portable 使用说明
 
 目录结构:
@@ -123,8 +123,8 @@ Windows 首次运行前置:
 
 安全停止: F10 紧急停止 | F8 暂停 | F9 恢复 | Ctrl+C 同效
 """
-    target = APP_DIST / "使用说明.txt"
-    target.write_text(text, encoding="utf-8")
+    target = APP_DIST / "README.txt"
+    target.write_text(text, encoding="utf-8-sig")
     info(f"已写入 {target.name}")
 
 
