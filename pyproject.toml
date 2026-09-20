@@ -1,3 +1,10 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "engine", "game", "models", "utils"]
+
 [project]
 name = "ylzt-bot"
 version = "0.1.0"
