@@ -1,0 +1,72 @@
+# GitHub Actions: Windows exe 云端打包
+#
+# 触发:
+# - push 到 main 且涉及代码/配置/打包文件变更
+# - 手动(workflow_dispatch)
+# - tag(v*)发布
+#
+# 产物:
+# - dist/ylzt/ 打包目录 → zip 压缩为 Artifact "ylzt-windows-portable"
+#   在 Actions 运行页底部下载
+#
+# 流程与 scripts/build_windows.bat 一致:
+# 建 venv → 装依赖(windows + dev + pyinstaller)→ 全量测试 → build.py 打包
+
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "ylzt.spec"
+      - "config/**"
+      - ".github/workflows/build-windows.yml"
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 创建虚拟环境并安装依赖
+        run: |
+          python -m venv .venv
+          .venv\Scripts\python -m pip install --upgrade pip
+          .venv\Scripts\python -m pip install -e ".[windows,dev]" pyinstaller
+        shell: cmd
+
+      - name: 运行全量测试
+        run: .venv\Scripts\python -m pytest -q
+
+      - name: PyInstaller 打包
+        run: .venv\Scripts\python scripts\build.py --no-tests
+        shell: cmd
+
+      - name: 压缩产物
+        run: Compress-Archive -Path dist\ylzt\* -DestinationPath ylzt-windows-portable.zip
+        shell: pwsh
+
+      - name: 上传 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ylzt-windows-portable
+          path: ylzt-windows-portable.zip
+          retention-days: 30
+
+      - name: 发布版附加产物
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ylzt-windows-portable.zip
